@@ -1,19 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-import logging
 import os
 import time
 from abc import ABC, abstractmethod
-
-ALLOWED_LOG_LEVELS = [
-    logging.CRITICAL,
-    logging.ERROR,
-    logging.WARNING,
-    logging.INFO,
-    logging.DEBUG
-]
-ALLOWED_LOG_LEVELS_NAMES = list(map(logging.getLevelName, ALLOWED_LOG_LEVELS))
 
 GPIO_DRIVER_FAKE = 'fake'
 GPIO_DRIVER_RPI = 'rpi'
@@ -25,16 +15,37 @@ SECTION_DISABLE_FAN = "Disable fan"
 SECTION_MIM_FAN_SPEED = "Min fan speed"
 SECTION_MAX_FAN_SPEED = "Max fan speed"
 
-log_level = os.getenv('LOG_LEVEL', logging.getLevelName(logging.WARNING))
+LOG_LEVEL_EMERGENCY = 0
+LOG_LEVEL_WARN = 4
+LOG_LEVEL_INFO = 6
+LOG_LEVEL_DEBUG = 7
+
+log_level = int(os.getenv('LOG_LEVEL', LOG_LEVEL_WARN))
 gpio_driver_name = os.getenv('GPIO_DRIVER', GPIO_DRIVER_RPI)
 config_file_name = os.getenv('CONFIG_FILE', "/etc/fan-pwm-control/config.conf")
 
-if log_level not in ALLOWED_LOG_LEVELS_NAMES:
-    raise ValueError(f"Unknown $LOG_LEVEL env var '{log_level}'. Use one of {ALLOWED_LOG_LEVELS_NAMES}")
+if log_level < LOG_LEVEL_EMERGENCY or log_level > LOG_LEVEL_DEBUG:
+    raise ValueError(
+        f"Invalid $LOG_LEVEL env var '{log_level}'. It should be from {LOG_LEVEL_EMERGENCY} to {LOG_LEVEL_DEBUG}"
+    )
 
-logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.getLevelName(log_level))
+
+class SystemdLogger:
+    def __init__(self, max_log_level):
+        self.max_log_level = max_log_level
+
+    def log(self, level, message):
+        if level <= self.max_log_level:
+            print(f"<{level}>{message}")
+
+    def info(self, message):
+        self.log(LOG_LEVEL_INFO, message)
+
+    def debug(self, message):
+        self.log(LOG_LEVEL_DEBUG, message)
+
+
+logger = SystemdLogger(log_level)
 
 
 class TempFanPoint:
