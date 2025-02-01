@@ -1,0 +1,14 @@
+[Unit]
+Description=PWM Fan Control
+After=mediacenter.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python /usr/bin/fan_ctrl.py
+Environment=PYTHONUNBUFFERED=1
+Environment=LOG_LEVEL=4
+Restart=always
+
+[Install]
+WantedBy=default.target
