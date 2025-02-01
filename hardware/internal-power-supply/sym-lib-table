@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "f4p")(type "KiCad")(uri "${KIPRJMOD}/f4p.kicad_sym")(options "")(descr ""))
+)
